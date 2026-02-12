@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Evaluate from "../logic/Evaluate";
 
 const KEYS = [
     "7", "8", "9", "÷",
@@ -86,12 +87,29 @@ export default function Calculator() {
         setIsNewEntry(true);
     }
 
+    // handling equal input
+    function pressEqual() {
+        const n = Number(display)
+        const full = [...tokens, n];
+        const result = Evaluate(full);
+
+        // reset calculator to default state after expression is completed
+        setDisplay(result);
+        setIsNewEntry(true);
+        setTokens([]);
+    }
+
     // key handler, 'C' should clear everything
     function handleKey(key) {
         if (key === 'C') {
             setDisplay('0');
             setTokens([]);
             setIsNewEntry(true);
+            return;
+        }
+
+        if (key === '=') {
+            pressEqual();
             return;
         }
 
