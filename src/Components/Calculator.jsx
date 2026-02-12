@@ -7,21 +7,38 @@ const KEYS = [
     "C", "0", "=", "+",
 ]
 
+const DIGITS = new Set(
+    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+)
+
 export default function Calculator() {
     const [display, setDisplay] = useState("0");
+    const [acc, setAcc] = useState(null);
+    const [op, setOp] = useState(null);
+    const [pendingOp, setPendingOp] = useState(false);
+
+    function pressDigit(d) {
+        if (display == "0") {
+            setDisplay(d);
+        } else {
+            setDisplay(display + d);
+        }
+        setAcc(display);
+    }
 
     function handleKey(key) {
-        if (key === 'C') {
-            setDisplay("0");
+        if (key == 'C') {
+            setDisplay('0');
             return;
         }
 
-        if (display === '0') {
-            setDisplay(key);
+        if (DIGITS.has(key)) {
+            pressDigit(key);
         } else {
-            setDisplay(display + key);
+            pressOp(key);
         }
     }
+
     return (
         <div className="calc">
             <div className="display">{display}</div>
