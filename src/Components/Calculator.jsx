@@ -1,23 +1,34 @@
 import { useState } from "react";
 import Evaluate from "../logic/Evaluate";
-
-const KEYS = [
-    "7", "8", "9", "÷",
-    "4", "5", "6", "×",
-    "1", "2", "3", "-",
-    "C", "0", "=", "+",
-]
-
-// for O(1) set
-const DIGITS = new Set(
-    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-)
+import Keypad from "./Keypad";
+import Display from "./Display";
+import { DIGITS, toOp, expressionText } from '../logic/format';
 
 // Calculator Component
 export default function Calculator() {
     const [display, setDisplay] = useState("0");
     const [tokens, setTokens] = useState([]);
     const [isNewEntry, setIsNewEntry] = useState(true);
+
+    // key handler, 'C' should clear and reset everything
+    function pressClear() {
+        setDisplay('0');
+        setTokens([]);
+        setIsNewEntry(true);
+        return;
+    }
+
+    // handling equal input
+    function pressEqual() {
+        const n = Number(display)
+        const full = [...tokens, n];
+        const result = Evaluate(full);
+
+        // reset calculator to default state after expression is completed
+        setDisplay(String(result));
+        setIsNewEntry(true);
+        setTokens([]);
+    }
 
     // Handling digit press
     function pressDigit(d) {
@@ -35,39 +46,6 @@ export default function Calculator() {
         }
     }
 
-    // from visual to math operations
-    function toOp(op) {
-        const op_map = {
-            '+': '+',
-            '-': '-',
-            '÷': '/',
-            '×': '*'
-        }
-        return op_map[op];
-    }
-
-    // from math operation to visual
-    function formatToken(t) {
-        if (t === "*") {
-            return "×";
-        } else if (t === "/") {
-            return "÷";
-        }
-        return t;
-    }
-
-    // joining expression together to display full expression in display
-    function expressionText() {
-        const exp = tokens.map(formatToken).join(" ");
-        if (!exp) {
-            return display;
-        }
-        if (isNewEntry) {
-            return exp;
-        }
-        return exp + " " + display;
-    }
-
     // handling operation input
     function pressOp(op) {
         const n = Number(display);
@@ -82,57 +60,24 @@ export default function Calculator() {
 
             return next;
         });
-
         setDisplay("0");
         setIsNewEntry(true);
     }
 
-    // handling equal input
-    function pressEqual() {
-        const n = Number(display)
-        const full = [...tokens, n];
-        const result = Evaluate(full);
-
-        // reset calculator to default state after expression is completed
-        setDisplay(result);
-        setIsNewEntry(true);
-        setTokens([]);
-    }
-
-    // key handler, 'C' should clear everything
+    // key handler
     function handleKey(key) {
-        if (key === 'C') {
-            setDisplay('0');
-            setTokens([]);
-            setIsNewEntry(true);
-            return;
-        }
+        if (key === 'C') return pressClear();
+        if (key === '=') return pressEqual();
 
-        if (key === '=') {
-            pressEqual();
-            return;
-        }
-
-        if (DIGITS.has(key)) {
-            pressDigit(key);
-        } else {
-            const op = toOp(key);
-            if (op) {
-                pressOp(op);
-            }
-        }
+        if (DIGITS.has(key)) return pressDigit(key);
+        const op = toOp(key);
+        if (op) return pressOp(op);
     }
 
     return (
         <div className="calc">
-            <div className="display">{expressionText()}</div>
-            <div className="keys">
-                {KEYS.map((k) => (
-                    <button key={k} onClick={() => handleKey(k)}>
-                        {k}
-                    </button>
-                ))}
-            </div>
+            <Display text={expressionText(tokens, display, isNewEntry)} />
+            <Keypad onKeyPress={handleKey} />
         </div>
     )
 }
