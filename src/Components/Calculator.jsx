@@ -20,12 +20,14 @@ export default function Calculator() {
 
     // handling equal input
     function pressEqual() {
+        if (display === "Error") return;
+
         const n = Number(display)
         const full = [...tokens, n];
         const result = Evaluate(full);
 
         // reset calculator to default state after expression is completed
-        setDisplay(String(result));
+        typeof result != "number" ? setDisplay("Error") : setDisplay((String(result)));
         setIsNewEntry(true);
         setTokens([]);
     }
@@ -48,6 +50,7 @@ export default function Calculator() {
 
     // handling operation input
     function pressOp(op) {
+        if (display === "Error") return;
         const n = Number(display);
 
         // treat array as immutable, if operation is being added while last element is an operation then

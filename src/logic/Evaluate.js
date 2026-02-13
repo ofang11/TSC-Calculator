@@ -9,7 +9,10 @@ function basic_op(a, b, op) {
         return a - b;
     } else if (op === "*") {
         return a * b;
-    } else {
+    } else if (op === "/") {
+        if (b === 0) {
+            return null;
+        }
         return a / b;
     }
 }
@@ -26,6 +29,9 @@ export default function Evaluate(tokens) {
         const op = ops.pop();
 
         const res = basic_op(a, b, op);
+        if (typeof res != "number") {
+            return null;
+        }
         vals.push(res);
     }
 
@@ -41,13 +47,13 @@ export default function Evaluate(tokens) {
         while (ops.length && PRECEDENCE[ops[ops.length - 1]] >= PRECEDENCE[tok]) {
             // if this operation does NOT take place first, then pop stashed operations until equal precedence is reached
             // then append this operation to list of operations
-            do_op()
+            if (do_op() === null) return null;
         } ops.push(tok);
     }
 
     // at this point, all operations should be of equal precedence, so complete them left to right
     while (ops.length) {
-        do_op()
+        if (do_op() === null) return null;
     }
 
     return vals[0];
